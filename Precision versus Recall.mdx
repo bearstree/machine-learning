@@ -1,0 +1,111 @@
+**Precision** asks: among predicted positives, how many were correct?  
+**Recall** asks: among actual positives, how many did we find?  
+Increasing recall often lowers precision because we classify more examples as positive.  
+
+$$
+\text{Precision}=\frac{TP}{TP+FP}
+$$
+
+$$
+\text{Recall}=\frac{TP}{TP+FN}
+$$
+
+## precision_recall.py  
+### with dependencies:  
+
+```python
+from collection.abc import Sequence
+from typing import Hashable
+
+from sklearn import precision_score, recore_score
+
+def precision_recall(
+    y_true: Sequence[Hashable],
+    y_pred: Sequence[Hashable],
+    positive_label: Hashable = 1,
+    zero_division: float = 0.0,
+) -> tuple[float, float]:
+    """Return binary classification metrics as ``(precision, recall)``."""
+    precision = precision_score(
+        y_true,
+        y_pred,
+        pos_label=positive_label,
+        average="binary",
+        zero_division=zero_division,
+    )
+    recall = recall_score(
+        y_true,
+        y_pred,
+        pos_label=positive_label,
+        average="binary",
+        zero_division=zero_division,
+    )
+    return float(precision), float(recall)
+
+
+if __name__ == "__main__":
+    expected = [1, 0, 1, 1, 0]
+    predicted = [1, 1, 1, 0, 0]
+
+    precision, recall = precision_recall(expected, predicted)
+    print(f"Precision: {precision:.3f}")  # 0.667
+    print(f"Recall:    {recall:.3f}")     # 0.667
+```
+
+## Without dependencies
+```python 
+from collections.abc import Iterable
+from typing import Hashable
+def precision_recall(
+    y_true: Iterable[Hashable],
+    y_pred: Iterable[Hashable],
+    positive_label: Hashable = 1,
+    zero_division: float = 0.0,
+) -> tuple[float, float]:
+    """Return ``(precision, recall)`` for a binary classification result.
+
+    Precision = TP / (TP + FP)
+    Recall    = TP / (TP + FN)
+
+    ``zero_division`` is returned when a denominator is zero.
+    """
+    true_values = list(y_true)
+    predicted_values = list(y_pred)
+
+    if len(true_values) != len(predicted_values):
+        raise ValueError("y_true and y_pred must have the same length")
+
+    true_positives = false_positives = false_negatives = 0
+
+    for actual, predicted in zip(true_values, predicted_values):
+        if predicted == positive_label:
+            if actual == positive_label:
+                true_positives += 1
+            else:
+                false_positives += 1
+        elif actual == positive_label:
+            false_negatives += 1
+
+    predicted_positive_count = true_positives + false_positives
+    actual_positive_count = true_positives + false_negatives
+
+    precision = (
+        true_positives / predicted_positive_count
+        if predicted_positive_count
+        else float(zero_division)
+    )
+    recall = (
+        true_positives / actual_positive_count
+        if actual_positive_count
+        else float(zero_division)
+    )
+    return precision, recall
+
+
+if __name__ == "__main__":
+    expected = [1, 0, 1, 1, 0]
+    predicted = [1, 1, 1, 0, 0]
+    precision, recall = precision_recall(expected, predicted)
+    print(f"Precision: {precision:.3f}")  # 2 / (2 + 1) = 0.667
+    print(f"Recall:    {recall:.3f}")     # 2 / (2 + 1) = 0.667
+```
